@@ -1,4 +1,4 @@
-public class GetWoman {
+public class WomanDefinition {
     /**
      * Notice how if you print a woke definition, not even a computer can understand.
      * It's because stupid woke definition is recursive and doesn't make sense.
