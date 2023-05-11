@@ -1,10 +1,9 @@
-package event.core.interactive;
+package event.core;
 
-import event.core.component.AbstractEvent;
 import obj_holders.MutableObjectHolder;
 
 @FunctionalInterface
-public interface EventArgs<Context, Event extends AbstractEvent<Context, Event>> {
+public interface EventArgs<Context> {
 
     /**
      * @param eventContext The events params.
@@ -14,11 +13,11 @@ public interface EventArgs<Context, Event extends AbstractEvent<Context, Event>>
      * @return The current instance.
      */
     @SuppressWarnings({"UnusedReturnValue", "SameReturnValue"})
-    EventArgs<Context, Event> recursive(
+    EventArgs<Context> recursive(
             final Context eventContext,
             final MutableObjectHolder<EventStatus> statusHolder,
-            final Event event,
+            final AbstractEvent<Context> event,
             final Object closer,
-            final EventArgs<Context, Event> eventArgs
+            final EventArgs<Context> eventArgs
     );
 }

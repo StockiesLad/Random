@@ -1,13 +1,11 @@
-package event.core.interactive;
+package event.core;
 
-import event.core.component.AbstractEvent;
 import obj_holders.MutableObjectHolder;
 
 @FunctionalInterface
-public interface StableEventArgs<Context, Event extends AbstractEvent<Context, Event>>
-        extends EventArgs<Context, Event> {
+public interface StableEventArgs<Context> extends EventArgs<Context> {
 
-    default EventArgs<Context, Event> upcast() {
+    default EventArgs<Context> upcast() {
         return this;
     }
 
@@ -19,12 +17,12 @@ public interface StableEventArgs<Context, Event extends AbstractEvent<Context, E
      * @return The current instance.
      */
     @Override
-    default EventArgs<Context, Event> recursive(
+    default EventArgs<Context> recursive(
             final Context eventContext,
             final MutableObjectHolder<EventStatus> eventStatus,
-            final Event event,
+            final AbstractEvent<Context> event,
             final Object closer,
-            final EventArgs<Context, Event> eventArgs
+            final EventArgs<Context> eventArgs
     ) {
         stable(eventContext, eventStatus, event, eventArgs);
         return null;
@@ -36,7 +34,7 @@ public interface StableEventArgs<Context, Event extends AbstractEvent<Context, E
     void stable(
             final Context eventContext,
             final MutableObjectHolder<EventStatus> eventStatus,
-            final Event event,
-            final EventArgs<Context, Event> eventArgs
+            final AbstractEvent<Context> event,
+            final EventArgs<Context> eventArgs
     );
 }

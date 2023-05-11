@@ -1,7 +1,6 @@
-package event.core.interactive;
+package event.core;
 
 public enum EventStatus {
-    FINISH_ALL,
     FINISH_LOCATION,
     FINISH_PRIORITY,
     CONTINUE,
