@@ -12,10 +12,6 @@ public interface AbstractEvent<Context> {
         getRegistry().clean();
     }
 
-    default void flipComparator() {
-        getRegistry().comparator = getRegistry().comparator.reversed();
-    }
-
     EventRegistry<Context> getRegistry();
 
 
@@ -80,33 +76,15 @@ public interface AbstractEvent<Context> {
      * To set up an event listener, just mixin to your target, call this method with a new event context.
      * See {@link AbstractEvent} for what an actual implementation looks like.
      * @param location Location of event.
-     * @param orderFlipped should event order be flipped when firing?
      * @param eventContext The provided context (of params) through this classes generic.
      */
-    void execute(final String location, final boolean orderFlipped, final Context eventContext);
+    void execute(final String location, final Context eventContext);
 
     /**
-     * A default ordered alternative to {@link AbstractEvent#execute(String, boolean, Context)}
-     * @param location Location of event.
-     * @param eventContext The provided context (of params) through this classes generic.
-     */
-    default void execute(final String location, final Context eventContext) {
-        execute(location, false, eventContext);
-    }
-
-    /**
-     * Generic location alternative to {@link AbstractEvent#execute(String, boolean, Context)}
-     * @param eventContext The provided context (of params) through this classes generic.
-     */
-    default void execute(final boolean orderFlipped, final Context eventContext) {
-        execute(GENERIC_LOCATION, orderFlipped, eventContext);
-    }
-
-    /**
-     * Generic location and default ordered alternative to {@link AbstractEvent#execute(String, boolean, Context)}
+     * Generic location alternative to {@link AbstractEvent#execute(String, Context)}
      * @param eventContext The provided context (of params) through this classes generic.
      */
     default void execute(final Context eventContext) {
-        execute(GENERIC_LOCATION, false, eventContext);
+        execute(GENERIC_LOCATION, eventContext);
     }
 }

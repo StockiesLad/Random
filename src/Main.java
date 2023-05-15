@@ -3,6 +3,7 @@ import event.def.ConcurrentEvent;
 import obj_holders.MutableObjectHolder;
 
 import java.util.List;
+import java.util.Random;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,20 +12,33 @@ public class Main {
         ).print();
         System.out.println(WomanDefinition.getWoman(true));
 
-        for (int t = 0; t < 100; t++) {
-            final int z = t;
-            final AbstractEvent<MutableObjectHolder<Integer>> event = new ConcurrentEvent<>();
-            for (int i = 0; i < 100; i++) {
-                final int n = i;
-                final Thread thread = new Thread(() -> event.registerListener(1,
-                        (eventContext, eventStatus, event1, eventArgs) -> System.out.println(z * 100 + n))
-                );
-                thread.start();
-            }
-            for (int i = 0; i < 1; i++) {
-                final Thread thread = new Thread(() -> event.execute(null));
-                thread.start();
-            }
+        final AbstractEvent<MutableObjectHolder<Integer>> event = new ConcurrentEvent<>();
+        Random random = new Random();
+        event.registerListener(-1, 1 + "a",
+                (eventContext, eventStatus, event1, eventArgs) -> System.out.println(-1));
+        for (int i = 0; i < 10; i++) {
+            final int n = random.nextInt(5);
+            final Thread thread = new Thread(() -> {
+                event.registerListener(n, n * n + "abc",
+                        (eventContext, eventStatus, event1, eventArgs) -> System.out.println(n));
+            });
+            thread.start();
+
+        }
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            final Thread thread = new Thread(() -> {
+                event.getRegistry().args.forEach((s, longQueueConcurrentSkipListMap) -> {
+                    System.out.println(s);
+                    event.execute(s, new MutableObjectHolder<>(1));
+                });
+            });
+            thread.start();
         }
     }
 }

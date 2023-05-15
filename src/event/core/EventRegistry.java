@@ -1,15 +1,16 @@
 package event.core;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class EventRegistry<Context>{
 
-    public final Map<String, PriorityHandler<Context>> args;
-    public final Queue<String> locations;
-    public Comparator<Long> comparator;
+    public final Map<String, ConcurrentSkipListMap<Long, Queue<EventArgs<Context>>>> args;
+    public final Comparator<Long> comparator;
 
     public EventRegistry() {
         this(Comparator.reverseOrder());
@@ -18,28 +19,29 @@ public class EventRegistry<Context>{
     public EventRegistry(Comparator<Long> comparator) {
         this.comparator = comparator;
         args = new ConcurrentHashMap<>();
-        locations = new ConcurrentLinkedQueue<>();
     }
 
     public boolean isEmpty() {
         if (args.isEmpty())
             return true;
-        else for (final var location : locations) {
-            if (!isEmpty(args.get(location))) {
-                return false;
+        else {
+            for (final var priorityMap : args.values()) {
+                if (!isEmpty(priorityMap)) {
+                    return false;
+                }
             }
         }
         return false;
     }
 
-    public boolean isEmpty(PriorityHandler<Context> priorityHandler) {
+    public boolean isEmpty(ConcurrentSkipListMap<Long, Queue<EventArgs<Context>>> priorityHandler) {
         if (priorityHandler == null)
             return true;
-        if (locations.isEmpty())
+        if (priorityHandler.isEmpty())
             return true;
         else {
-            for (long priority : priorityHandler.priorities) {
-                if (!isEmpty(priorityHandler.priorityMap.get(priority)))
+            for (final var eventArgs : priorityHandler.values()) {
+                if (!isEmpty(eventArgs))
                     return false;
             }
         }
@@ -53,108 +55,60 @@ public class EventRegistry<Context>{
     }
 
     public void clean() {
-        final List<String> emptyLocations = new ArrayList<>();
-        for (final var location : locations) {
-            final var priorityHandler = args.get(location);
-            final List<Long> emptyPriorities = new ArrayList<>();
-            for (final var priority : priorityHandler.priorities) {
-                final var eventArgs = priorityHandler.priorityMap.get(priority);
+        args.forEach((location, priorityMap) -> {
+            priorityMap.forEach((priority, eventArgs) -> {
                 if (isEmpty(eventArgs)) {
-                    priorityHandler.priorityMap.remove(priority);
-                    emptyPriorities.add(priority);
+                    priorityMap.remove(priority, eventArgs);
                 }
-            }
-            for (long emptyPriority : emptyPriorities)
-                priorityHandler.priorities.remove(emptyPriority);
-            if (isEmpty(priorityHandler))
-                emptyLocations.add(location);
-        }
-        for (final var location : emptyLocations)
-            args.remove(location);
+            });
+            if (isEmpty(priorityMap))
+                args.remove(location);
+        });
     }
 
     public void remove(String location, long priority, EventArgs<Context> eventArgs) {
-        args.get(location).priorityMap.get(priority).remove(eventArgs);
+        args.get(location).get(priority).remove(eventArgs);
         clean();
     }
 
     public void add(String location, long priority, EventArgs<Context> eventArgs) {
-        locations.add(location);
-        if (args.containsKey(location)) {
-            add(args.get(location), priority, eventArgs);
-        } else {
-            PriorityHandler<Context> priorityMap = new PriorityHandler<>(new CopyOnWriteArrayList<>(), new ConcurrentHashMap<>());
-            add(priorityMap, priority, eventArgs);
-            args.put(location, priorityMap);
-        }
+        args.putIfAbsent(location, new ConcurrentSkipListMap<>());
+        add(args.get(location), priority, eventArgs);
     }
 
     public void add(
-            PriorityHandler<Context> priorityHandler,
+            ConcurrentSkipListMap<Long, Queue<EventArgs<Context>>> priorityMap,
             long priority,
             EventArgs<Context> eventArgs
     ) {
-        final var priorities = priorityHandler.priorities;
-        final var priorityMap = priorityHandler.priorityMap;
-        if (!priorities.contains(priority)) {
-            priorities.add(priority);
-            priorities.sort(comparator);
-        }
-        if (priorityMap.containsKey(priority))
-            priorityMap.get(priority).add(eventArgs);
-        else {
-            final Queue<EventArgs<Context>> argsQueue = new ConcurrentLinkedQueue<>();
-            argsQueue.add(eventArgs);
-            priorityMap.put(priority, argsQueue);
-        }
+        priorityMap.putIfAbsent(priority, new ConcurrentLinkedQueue<>());
+        priorityMap.get(priority).add(eventArgs);
     }
 
 
     public void addAll(EventRegistry<Context> eventRegistry) {
-        for (final var location : eventRegistry.locations) {
-            final var priorityHandler = eventRegistry.args.get(location);
-            for (final var priority : priorityHandler.priorities) {
-                addAll(location, priority, priorityHandler.priorityMap.get(priority));
-            }
-        }
+        eventRegistry.args.forEach((location, priorityMap) ->
+                priorityMap.forEach((priority, eventArgs) ->
+                        addAll(location, priority, eventArgs)
+        ));
     }
 
     public void addAll(String location, long priority, Queue<EventArgs<Context>> eventArgs) {
-        locations.add(location);
-        if (args.containsKey(location)) {
-            addAll(args.get(location), priority, eventArgs);
-        } else {
-            PriorityHandler<Context> priorityMap = new PriorityHandler<>(new CopyOnWriteArrayList<>(), new ConcurrentHashMap<>());
-            addAll(priorityMap, priority, eventArgs);
-            args.put(location, priorityMap);
-        }
+        args.putIfAbsent(location, new ConcurrentSkipListMap<>());
+        addAll(args.get(location), priority, eventArgs);
     }
 
     public void addAll(
-            PriorityHandler<Context> priorityHandler,
+            ConcurrentSkipListMap<Long, Queue<EventArgs<Context>>> priorityMap,
             long priority,
             Queue<EventArgs<Context>> eventArgs
     ) {
-        final var priorities = priorityHandler.priorities;
-        final var priorityMap = priorityHandler.priorityMap;
-        if (!priorities.contains(priority)) {
-            priorities.add(priority);
-            priorities.sort(comparator);
-        }
-        if (priorityMap.containsKey(priority))
-            priorityMap.get(priority).addAll(eventArgs);
-        else {
-            priorityMap.put(priority, eventArgs);
-        }
+        priorityMap.putIfAbsent(priority, eventArgs);
+        priorityMap.get(priority).addAll(eventArgs);
     }
 
-    public static class PriorityHandler<Context> {
-        public final List<Long> priorities;
-        public final Map<Long, Queue<EventArgs<Context>>> priorityMap;
-
-        PriorityHandler(List<Long> priorities, Map<Long, Queue<EventArgs<Context>>> priorityMap) {
-            this.priorities = priorities;
-            this.priorityMap = priorityMap;
-        }
+    @Override
+    public String toString() {
+        return "EventRegistry[" + args +"]@" + hashCode();
     }
 }

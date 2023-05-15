@@ -25,5 +25,5 @@ public class EmptyEvent<T> implements AbstractEvent<T> {
     public void registerListener(long priority, String location, EventArgs<T> argsProvider) {}
 
     @Override
-    public void execute(String locations, boolean orderFlipped, T eventContext) {}
+    public void execute(String locations, T eventContext) {}
 }

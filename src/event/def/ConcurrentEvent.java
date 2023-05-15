@@ -23,8 +23,6 @@ public class ConcurrentEvent<Context> implements AbstractEvent<Context> {
         this(Comparator.reverseOrder());
     }
 
-
-
     @Override
     public EventRegistry<Context> getRegistry() {
         return eventRegistry;
@@ -41,19 +39,18 @@ public class ConcurrentEvent<Context> implements AbstractEvent<Context> {
     }
 
     @Override
-    public void execute(final String location, final boolean orderFlipped, final Context eventContext) {
+    public void execute(final String location, final Context eventContext) {
         MutableObjectHolder<EventStatus> statusHolder = new MutableObjectHolder<>(CONTINUE);
-        final var all = eventRegistry.args.get(location);
-        synchronized (all) {
-            for(final var priority : all.priorities) {
-                for (EventArgs<Context> eventArgs : all.priorityMap.get(priority)) {
-                    eventArgs.recursive(eventContext, statusHolder, this, 0, eventArgs);
+        final var all = getRegistry().args.get(location);
+        if (all != null)
+            for (final var eventArgs : all.values()) {
+                for (EventArgs<Context> eventArg : eventArgs) {
+                    eventArg.recursive(eventContext, statusHolder, this, 0, eventArg);
                     if (statusHolder.equalsAny(List.of(FINISH_PRIORITY, FINISH_LOCATION)))
                         break;
                 }
-                if (!statusHolder.equalsAny(List.of(FINISH_LOCATION)))
+                if (statusHolder.equalsAny(List.of(FINISH_LOCATION)))
                     break;
             }
-        }
     }
 }
