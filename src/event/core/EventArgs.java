@@ -1,6 +1,6 @@
 package event.core;
 
-import obj_holders.MutableObjectHolder;
+import obj_holders.ObjectHolder;
 
 @FunctionalInterface
 public interface EventArgs<Context> {
@@ -15,7 +15,7 @@ public interface EventArgs<Context> {
     @SuppressWarnings({"UnusedReturnValue", "SameReturnValue"})
     EventArgs<Context> recursive(
             final Context eventContext,
-            final MutableObjectHolder<EventStatus> statusHolder,
+            final ObjectHolder<EventStatus> statusHolder,
             final AbstractEvent<Context> event,
             final Object closer,
             final EventArgs<Context> eventArgs

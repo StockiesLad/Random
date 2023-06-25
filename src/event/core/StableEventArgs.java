@@ -1,6 +1,6 @@
 package event.core;
 
-import obj_holders.MutableObjectHolder;
+import obj_holders.ObjectHolder;
 
 @FunctionalInterface
 public interface StableEventArgs<Context> extends EventArgs<Context> {
@@ -19,7 +19,7 @@ public interface StableEventArgs<Context> extends EventArgs<Context> {
     @Override
     default EventArgs<Context> recursive(
             final Context eventContext,
-            final MutableObjectHolder<EventStatus> eventStatus,
+            final ObjectHolder<EventStatus> eventStatus,
             final AbstractEvent<Context> event,
             final Object closer,
             final EventArgs<Context> eventArgs
@@ -33,7 +33,7 @@ public interface StableEventArgs<Context> extends EventArgs<Context> {
      */
     void stable(
             final Context eventContext,
-            final MutableObjectHolder<EventStatus> eventStatus,
+            final ObjectHolder<EventStatus> eventStatus,
             final AbstractEvent<Context> event,
             final EventArgs<Context> eventArgs
     );

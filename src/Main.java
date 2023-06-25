@@ -1,6 +1,7 @@
 import event.core.AbstractEvent;
 import event.def.ConcurrentEvent;
 import obj_holders.MutableObjectHolder;
+import obj_holders.ObjectHolder;
 
 import java.util.List;
 import java.util.Random;
@@ -12,7 +13,7 @@ public class Main {
         ).print();
         System.out.println(WomanDefinition.getWoman(true));
 
-        final AbstractEvent<MutableObjectHolder<Integer>> event = new ConcurrentEvent<>();
+        final AbstractEvent<ObjectHolder<Integer>> event = new ConcurrentEvent<>();
         Random random = new Random();
         event.registerListener(-1, 1 + "a",
                 (eventContext, eventStatus, event1, eventArgs) -> System.out.println(-1));

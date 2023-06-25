@@ -2,7 +2,7 @@ package obj_holders;
 
 public class ImmutableObjectHolder<T> implements ObjectHolder<T> {
 
-    protected T heldObj;
+    private final T heldObj;
 
     public ImmutableObjectHolder(T heldObj) {
         this.heldObj = heldObj;
@@ -15,5 +15,10 @@ public class ImmutableObjectHolder<T> implements ObjectHolder<T> {
     @Override
     public T getHeldObj() {
         return heldObj;
+    }
+
+    @Override
+    public ObjectHolder<T> mutateHeldObj(T newObj) {
+        return new ImmutableObjectHolder<>(heldObj);
     }
 }

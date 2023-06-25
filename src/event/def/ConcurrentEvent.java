@@ -5,6 +5,7 @@ import event.core.EventArgs;
 import event.core.EventRegistry;
 import event.core.EventStatus;
 import obj_holders.MutableObjectHolder;
+import obj_holders.ObjectHolder;
 
 import java.util.Comparator;
 import java.util.List;
@@ -40,7 +41,7 @@ public class ConcurrentEvent<Context> implements AbstractEvent<Context> {
 
     @Override
     public void execute(final String location, final Context eventContext) {
-        MutableObjectHolder<EventStatus> statusHolder = new MutableObjectHolder<>(CONTINUE);
+        ObjectHolder<EventStatus> statusHolder = new MutableObjectHolder<>(CONTINUE);
         final var all = getRegistry().args.get(location);
         if (all != null)
             for (final var eventArgs : all.values()) {

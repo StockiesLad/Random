@@ -1,25 +1,23 @@
 package obj_holders;
 
-import java.util.function.Function;
-
 /**
  * It holds objects to allow modification through method calls.
  * @param <T> any object.
  */
-public class MutableObjectHolder<T> extends ImmutableObjectHolder<T> {
+public class MutableObjectHolder<T> implements ObjectHolder<T> {
+    private T heldObj;
     public MutableObjectHolder(T heldObj) {
-        super(heldObj);
-    }
-    public MutableObjectHolder() {
-        super();
+        this.heldObj = heldObj;
     }
 
-    public void setHeldObj(T heldObj) {
-        super.heldObj = heldObj;
+    @Override
+    public T getHeldObj() {
+        return heldObj;
     }
 
-    @SuppressWarnings("unused")
-    public void modifyHeldObj(final Function<T, T> withHeldObj) {
-        super.heldObj = withHeldObj.apply(super.heldObj);
+    @Override
+    public ObjectHolder<T> mutateHeldObj(T newObj) {
+        heldObj = newObj;
+        return this;
     }
 }
